@@ -7,7 +7,7 @@ import org.bakasu.bakasu.domain.model.DownloadState
 import org.bakasu.bakasu.domain.model.ManagerUpdateInfo
 
 class EnqueueDownloadUseCase(private val repository: DownloadRepository) {
-    operator fun invoke(url: String, fileName: String): Int = repository.enqueue(url, fileName)
+    operator fun invoke(url: String, fileName: String): Int? = repository.enqueue(url, fileName)
 }
 
 class EnqueueManagerUpdateUseCase(private val repository: DownloadRepository) {

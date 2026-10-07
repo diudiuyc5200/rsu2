@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import org.bakasu.bakasu.domain.model.DownloadState
 import org.bakasu.bakasu.domain.model.DownloadStatus
@@ -22,12 +23,13 @@ class DownloadRepository(
     private val _downloads = MutableStateFlow<Map<Int, DownloadState>>(emptyMap())
     val downloads: StateFlow<Map<Int, DownloadState>> = _downloads.asStateFlow()
 
-    fun enqueue(url: String, fileName: String): Int {
+    fun enqueue(url: String, fileName: String): Int? {
         synchronized(enqueueLock) {
             val existing = _downloads.value.values.find {
                 it.url == url && (it.status == DownloadStatus.PENDING || it.status == DownloadStatus.DOWNLOADING)
             }
-            if (existing != null) return existing.id
+            // The original request owns the completion callback for an active download.
+            if (existing != null) return null
 
             val id = idCounter.incrementAndGet()
             _downloads.update {
@@ -96,13 +98,15 @@ class DownloadRepository(
     fun updateProgress(id: Int, progress: Int) {
         _downloads.update { map ->
             val state = map[id] ?: return@update map
+            if (state.status == DownloadStatus.FAILED || state.status == DownloadStatus.COMPLETED) return@update map
             map + (id to state.copy(progress = progress, status = DownloadStatus.DOWNLOADING))
         }
     }
 
-    fun markCompleted(id: Int, uri: String) {
-        _downloads.update { map ->
-            val state = map[id] ?: return@update map
+    fun markCompleted(id: Int, uri: String): Boolean {
+        val previous = _downloads.getAndUpdate { map ->
+            val state = map[id] ?: return@getAndUpdate map
+            if (state.status == DownloadStatus.FAILED || state.status == DownloadStatus.COMPLETED) return@getAndUpdate map
             map + (
                 id to state.copy(
                     status = DownloadStatus.COMPLETED,
@@ -111,11 +115,13 @@ class DownloadRepository(
                 )
                 )
         }
+        return previous[id]?.let { it.status == DownloadStatus.PENDING || it.status == DownloadStatus.DOWNLOADING } == true
     }
 
     fun markFailed(id: Int, error: String) {
         _downloads.update { map ->
             val state = map[id] ?: return@update map
+            if (state.status == DownloadStatus.FAILED || state.status == DownloadStatus.COMPLETED) return@update map
             map + (id to state.copy(status = DownloadStatus.FAILED, error = error))
         }
     }

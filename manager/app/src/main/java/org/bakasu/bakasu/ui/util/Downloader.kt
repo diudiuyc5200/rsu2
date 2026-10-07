@@ -32,6 +32,7 @@ fun download(
     onDownloaded: (Uri) -> Unit = {},
     onDownloading: () -> Unit = {},
     onProgress: (Int) -> Unit = {},
+    canEnqueue: () -> Boolean = { true },
 ) {
     fun startDownloadFile(
         url: String,
@@ -40,9 +41,9 @@ fun download(
         onDownloading: () -> Unit,
         onProgress: (Int) -> Unit,
     ) {
+        if (!canEnqueue()) return
+        val downloadId = enqueueDownload(url, fileName) ?: return
         onDownloading()
-
-        val downloadId = enqueueDownload(url, fileName)
 
         CoroutineScope(Dispatchers.Main).launch {
             observeDownload(downloadId).collect { state ->
