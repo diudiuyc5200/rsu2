@@ -47,8 +47,7 @@ jobs:
     - name: Setup Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: nightly
-        # 7月版本使用build‑std，必须删除targets参数，禁止自动安装预编译target
+        toolchain: nightly-2025-07-03
         components: rust-src
 
     - name: Remove pre‑installed android target
@@ -58,7 +57,7 @@ jobs:
     - uses: Swatinem/rust-cache@v2
       if: github.event_name != 'pull_request'
       with:
-        prefix-key: ksud-${{ inputs.target }}
+        prefix-key: ksud-v2-${{ inputs.target }}
         workspaces: userspace/ksud
         cache-targets: true
         
