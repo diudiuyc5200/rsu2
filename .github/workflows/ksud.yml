@@ -47,7 +47,7 @@ jobs:
     - name: Setup Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: nightly-2025-07-03
+        toolchain: nightly-2025-07-20
         components: rust-src
 
     - name: Remove pre‑installed android target
@@ -70,9 +70,11 @@ jobs:
         cargo clean
         
     - name: Build ksud
+      env:
+        RUSTFLAGS: "-Zunstable-options -Cpanic=immediate-abort"
       run: |
         cd userspace/ksud/
-        cargo ndk b -t ${{ inputs.target }} -r -Z build-std=std,core,panic_abort -Z build-std-features="optimize_for_size,panic_immediate_abort" -Z trim-paths
+        cargo ndk b -t ${{ inputs.target }} -r -Z build-std=std,core,panic_abort,panic_unwind -Z build-std-features="optimize_for_size" -Z trim-paths
 
     - name: Upload ksud artifact
       uses: actions/upload-artifact@v7
