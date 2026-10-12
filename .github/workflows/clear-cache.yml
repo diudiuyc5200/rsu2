@@ -1,0 +1,14 @@
+name: Clear branch cache
+on:
+  workflow_dispatch:
+jobs:
+  clear:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete all cache for current branch
+        run: |
+          gh cache delete --all --ref $GITHUB_REF --succeed-on-no-caches
+        env:
+          GH_TOKEN: ${{ github.token }}
