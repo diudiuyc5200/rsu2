@@ -48,11 +48,8 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: nightly
+        targets: ${{ inputs.target }}
         components: rust-src
-        
-    - name: Remove pre‑installed android target to avoid build‑std conflict
-      run: |
-        rustup target remove ${{ inputs.target }} || true
         
     - uses: Swatinem/rust-cache@v2
       if: github.event_name != 'pull_request'
@@ -63,16 +60,11 @@ jobs:
         
     - name: Setup cargo-ndk
       run: cargo install cargo-ndk --locked
-
-    - name: Cargo clean workspace
-      run: |
-        cd userspace/ksud/
-        cargo clean
         
     - name: Build ksud
       run: |
         cd userspace/ksud/
-        cargo ndk b -t ${{ inputs.target }} -r -Z build-std=std,core,panic_abort,panic_unwind -Z build-std-features="optimize_for_size" -Z trim-paths
+        cargo ndk b -t ${{ inputs.target }} -r -Z build-std=std,core,panic_abort -Z build-std-features="optimize_for_size" -Z trim-paths
 
     - name: Upload ksud artifact
       uses: actions/upload-artifact@v7
