@@ -48,10 +48,8 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: nightly
-        # 重点：删掉 targets 参数！不要自动安装预编译android target
         components: rust-src
         
-    # 关键：删除可能残留的预编译target，避免两套core冲突
     - name: Remove pre‑installed android target to avoid build‑std conflict
       run: |
         rustup target remove ${{ inputs.target }} || true
@@ -65,11 +63,16 @@ jobs:
         
     - name: Setup cargo-ndk
       run: cargo install cargo-ndk --locked
+
+    - name: Cargo clean workspace
+      run: |
+        cd userspace/ksud/
+        cargo clean
         
     - name: Build ksud
       run: |
         cd userspace/ksud/
-        cargo ndk b -t ${{ inputs.target }} -r -Z build-std=std,core,panic_abort -Z build-std-features="optimize_for_size" -Z trim-paths
+        cargo ndk b -t ${{ inputs.target }} -r -Z build-std=std,core,panic_abort,panic_unwind -Z build-std-features="optimize_for_size" -Z trim-paths
 
     - name: Upload ksud artifact
       uses: actions/upload-artifact@v7
