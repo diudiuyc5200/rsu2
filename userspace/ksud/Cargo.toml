@@ -25,10 +25,10 @@ memmap2 = "0.9.10"
 base16ct = { version = "1.0.0", features = ["alloc"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
-rustix = { version = "=1.1.4", default-features = false, features = ["process", "thread", "fs", "system", "stdio"] }
+rustix = { version = "=1.1.5", default-features = false, features = ["process", "thread", "fs", "system", "stdio"] }
 android-properties = { version = "0.2", features = ["bionic-deprecated"] }
 android_logger = { version = "0.15", default-features = false }
-zip = { version = "8",  features = [
+zip = { version = "9",  features = [
     "deflate",
     "deflate64",
     "time",
@@ -46,7 +46,7 @@ encoding_rs = "0.8"
 humansize = "2"
 libc = "0.2"
 extattr = "1"
-jwalk = "0.8"
+jwalk = "0.9"
 is_executable = "1"
 nom = "8"
 derive-new = "0.7"
@@ -66,4 +66,4 @@ lto = true
 codegen-units = 1
 
 [build-dependencies]
-bindgen = "0.72.1"
+bindgen = "0.73.2"
